@@ -1,0 +1,134 @@
+let ball;
+let paddle1;
+let paddle2;
+let score1 = 0;
+let score2 = 0;
+let playing = false;
+
+function setup() {
+  createCanvas(600, 400);
+  ball = new Ball();
+  paddle1 = new Paddle(20, height / 2 - 50, color(0, 0, 255)); // Azul
+  paddle2 = new Paddle(width - 30, height / 2 - 50, color(255, 0, 0)); // Vermelho
+}
+
+function draw() {
+  background(0);
+  
+  if (!playing) {
+    textAlign(CENTER);
+    textSize(32);
+    fill(255);
+    text("Click to start", width / 2, height / 2);
+  } else {
+    ball.update();
+    ball.checkCollision(paddle1);
+    ball.checkCollision(paddle2);
+    ball.display();
+  
+    paddle1.update();
+    paddle2.update();
+    paddle1.display();
+    paddle2.display();
+    
+    // Score
+    fill(255);
+    textSize(32);
+    text(score1, width / 4, 50);
+    text(score2, 3 * width / 4, 50);
+    
+    // Check for game over
+    if (score1 >= 10 || score2 >= 10) {
+      textAlign(CENTER);
+      textSize(48);
+      fill(255, 0, 0);
+      text("Game Over", width / 2, height / 2);
+      noLoop(); // Stop the game loop
+    }
+  }
+}
+
+function mousePressed() {
+  if (!playing) {
+    playing = true;
+    ball.reset();
+  }
+}
+
+class Ball {
+  constructor() {
+    this.reset();
+  }
+  
+  reset() {
+    this.x = width / 2;
+    this.y = height / 2;
+    this.xSpeed = random(3, 5) * (random() > 0.5 ? 1 : -1);
+    this.ySpeed = random(2, 4) * (random() > 0.5 ? 1 : -1);
+  }
+  
+  update() {
+    this.x += this.xSpeed;
+    this.y += this.ySpeed;
+    
+    if (this.y < 0 || this.y > height) {
+      this.ySpeed *= -1;
+    }
+    
+    if (this.x < 0) {
+      score2++;
+      this.reset();
+    }
+    
+    if (this.x > width) {
+      score1++;
+      this.reset();
+    }
+  }
+  
+  display() {
+    fill(0, 255, 0); // Verde
+    ellipse(this.x, this.y, 20, 20);
+  }
+  
+  checkCollision(paddle) {
+    if (this.x - 10 < paddle.x + 10 &&
+        this.x + 10 > paddle.x - 10 &&
+        this.y - 10 < paddle.y + 100 &&
+        this.y + 10 > paddle.y) {
+      this.xSpeed *= -1;
+    }
+  }
+}
+
+class Paddle {
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.speed = 5;
+    this.color = color;
+  }
+  
+  update() {
+    if (this === paddle1) {
+      if (keyIsDown(87) && this.y > 0) { // W key
+        this.y -= this.speed;
+      }
+      if (keyIsDown(83) && this.y < height - 100) { // S key
+        this.y += this.speed;
+      }
+    } else if (this === paddle2) {
+      if (keyIsDown(UP_ARROW) && this.y > 0) {
+        this.y -= this.speed;
+      }
+      if (keyIsDown(DOWN_ARROW) && this.y < height - 100) {
+        this.y += this.speed;
+      }
+    }
+  }
+  
+  display() {
+    fill(this.color);
+    rect(this.x, this.y, 10, 100);
+  }
+}
